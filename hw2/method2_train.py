@@ -3,10 +3,10 @@
 
 # In[ ]:
 
+import sys
 import csv
 import numpy as np
 import math
-import sys
 
 def normalize(X,length):
     
@@ -16,49 +16,43 @@ def normalize(X,length):
             X[x,y]=(X[x,y]-minMax[y,0])/(minMax[y,1]-minMax[y,0])
     return X
 
-test_name=sys.argv[2]
-if test_name.find('.csv')<0:
-    test_name=test_name+'.csv'
-model_name=sys.argv[1]
+train_name=sys.argv[1]
+if train_name.find('.csv')<0:
+    train_name=train_name+'.csv'
+model_name=sys.argv[2]
 if model_name.find('.csv')<0:
     model_name=model_name+'.csv'
-answer_name=sys.argv[3]   
-if answer_name.find('.csv')<0:
-    answer_name=answer_name+'.csv'
-
-#model
-modelf=open(model_name, 'rb')
-model=[row for row in csv.reader(modelf)]
-modelf.close()    
-weight=np.array(model[0],dtype=np.float)
 
 #process data_set
-testFile=open(test_name, 'rb')
-testSet=[row[1:] for row in csv.reader(testFile)]
-testFile.close()    
-testSet=np.array(testSet,dtype=np.float)
+trainFile=open(train_name, 'rb')
+trainSet=[row[1:] for row in csv.reader(trainFile)]    
+trainFile.close()
+trainSet=np.array(trainSet,dtype=np.float)
 
-for i in xrange(len(testSet)):
+#pick feature
+testSet_temp=np.array(trainSet)
+testSet=[]
+for i in xrange(len(testSet_temp)):
+    testSet.append(list(testSet_temp[i,:58]))
     testSet[i][54]=math.log(testSet[i][54])
     testSet[i][56]=math.log(testSet[i][56])
     if testSet[i][18]!=0:
         testSet[i][18]=math.log(testSet[i][18])
+    
+testSet=np.array(testSet)
+w_len=len(testSet[0])-1
 
-testSet2=normalize(np.array(testSet),600)
+#train:get model(weight,bias)-----------------------------------------------------------------------------------------
+trainSet1=normalize(np.array(testSet[...,:w_len]),4001)
+b=testSet[...,w_len]
 
-with open(answer_name,'wb') as csvfile:
+x=trainSet1
+xt=np.transpose(trainSet1)
+lambdaI=0*np.identity(len(trainSet1[0]))
+w=np.dot(np.dot(np.linalg.inv(np.dot(xt,x)+lambdaI),xt),b)
+
+#write
+with open(model_name,'wb') as csvfile:
     ansFile=csv.writer(csvfile)
-    ansFile.writerow(['id','label'])
-    for i in xrange(600):
-        
-        f=np.sum(weight*testSet2[i])
-        y_pred=1
-        if (f-1)**2>(f-0)**2:
-            y_pred=0
-#        elif  testSet2[i,31]>0  or testSet2[i,28]>0.5  or  ValidationSet[i,27]>0.5  or ValidationSet[i,26]>0.5  or ValidationSet[i,41]>0.4  or ValidationSet[i,40]>0.1:
-#            y_pred=0
-        
-        
-        a=[str(i+1),str(y_pred)]
-        ansFile.writerow(a)
+    ansFile.writerow(w)
 
