@@ -1,2 +1,2 @@
 #!/bin/bash
-KERAS_BACKEND=theano python master_predict.py $1 $2 $3
+KERAS_BACKEND=theano python method2_predict.py $1 $2 $3
