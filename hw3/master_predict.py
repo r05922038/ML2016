@@ -59,7 +59,7 @@ with open(PRED,"wb") as csvfile:
     ansFile=csv.writer(csvfile)
     ansFile.writerow(['ID','class'])
     for i in xrange(10000):
-        a=[str(test_id),str(pred[i])]
+        a=[str(test_id[i]),str(pred[i])]
         ansFile.writerow(a)
 
 
